@@ -1,0 +1,1483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dual Horizon Technologies — Automated Trading Systems</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #080f1e;
+    --navy2: #0d1829;
+    --navy3: #111f35;
+    --gold: #c9a84c;
+    --gold2: #e2c06a;
+    --gold-dim: rgba(201,168,76,0.15);
+    --gold-line: rgba(201,168,76,0.35);
+    --white: #f5f0e8;
+    --grey: rgba(245,240,232,0.55);
+    --grey2: rgba(245,240,232,0.25);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--navy);
+    color: var(--white);
+    font-family: 'Barlow', sans-serif;
+    font-weight: 300;
+    overflow-x: hidden;
+    cursor: crosshair;
+  }
+
+  /* ── NOISE OVERLAY ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.4;
+  }
+
+  /* ── GRID BG ── */
+  .grid-bg {
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(201,168,76,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(201,168,76,0.03) 1px, transparent 1px);
+    background-size: 80px 80px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.4rem 4rem;
+    border-bottom: 1px solid rgba(201,168,76,0.1);
+    background: rgba(8,15,30,0.85);
+    backdrop-filter: blur(12px);
+  }
+
+  .nav-logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    color: var(--white);
+    text-decoration: none;
+  }
+
+  .nav-logo span { color: var(--gold); }
+
+  .nav-links {
+    display: flex;
+    gap: 2.5rem;
+    list-style: none;
+  }
+
+  .nav-links a {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--grey);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .nav-links a:hover { color: var(--gold); }
+
+  .nav-cta {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    border: 1px solid var(--gold-line);
+    padding: 0.5rem 1.4rem;
+    text-decoration: none;
+    transition: background 0.2s, color 0.2s;
+  }
+
+  .nav-cta:hover {
+    background: var(--gold);
+    color: var(--navy);
+  }
+
+  /* ── HERO ── */
+  #hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 8rem 2rem 4rem;
+    z-index: 1;
+    overflow: hidden;
+  }
+
+  /* coin parallax layer — rising sun from horizon */
+  .coin-parallax {
+    position: absolute;
+    bottom: -18%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(900px, 110vw);
+    height: min(900px, 110vw);
+    pointer-events: none;
+    will-change: transform;
+    z-index: 0;
+  }
+
+  .coin-parallax img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    opacity: 0.28;
+    filter: blur(0.2px) saturate(1.6) brightness(1.1);
+    animation: coinFloat 12s ease-in-out infinite;
+  }
+
+  @keyframes coinFloat {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    33%       { transform: translateY(-18px) rotate(0.6deg); }
+    66%       { transform: translateY(10px) rotate(-0.4deg); }
+  }
+
+  /* horizon vignette — fades sides and top, glows at bottom like sunrise */
+  .coin-parallax::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(to bottom, var(--navy) 0%, transparent 25%, transparent 60%, rgba(8,15,30,0.3) 100%),
+      linear-gradient(to right, var(--navy) 0%, transparent 20%, transparent 80%, var(--navy) 100%),
+      linear-gradient(to top, transparent 0%, var(--navy) 55%);
+    pointer-events: none;
+  }
+
+  .hero-glow {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 900px;
+    height: 500px;
+    background: radial-gradient(ellipse at center bottom, rgba(201,168,76,0.18) 0%, rgba(201,168,76,0.06) 40%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-flag {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 2rem;
+    opacity: 0;
+    animation: fadeUp 0.8s ease forwards 0.2s;
+  }
+
+  .hero-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(3.5rem, 9vw, 8rem);
+    font-weight: 700;
+    line-height: 0.9;
+    letter-spacing: -0.01em;
+    margin-bottom: 1.5rem;
+    opacity: 0;
+    animation: fadeUp 0.9s ease forwards 0.4s;
+  }
+
+  .hero-title .line2 {
+    color: var(--gold);
+    font-style: italic;
+  }
+
+  .hero-title .line3 {
+    font-size: clamp(1.2rem, 3vw, 2.2rem);
+    font-weight: 400;
+    letter-spacing: 0.4em;
+    color: var(--grey);
+    display: block;
+    margin-top: 0.6rem;
+    font-style: normal;
+  }
+
+  .hero-tagline {
+    font-family: 'Barlow', sans-serif;
+    font-size: clamp(0.9rem, 2vw, 1.1rem);
+    font-weight: 300;
+    color: var(--grey);
+    max-width: 520px;
+    line-height: 1.8;
+    margin-bottom: 3rem;
+    opacity: 0;
+    animation: fadeUp 0.9s ease forwards 0.6s;
+  }
+
+  .hero-tagline strong {
+    color: var(--white);
+    font-weight: 500;
+  }
+
+  .hero-btns {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    opacity: 0;
+    animation: fadeUp 0.9s ease forwards 0.8s;
+  }
+
+  .btn-primary {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.8rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    background: var(--gold);
+    color: var(--navy);
+    padding: 0.9rem 2.4rem;
+    text-decoration: none;
+    font-weight: 600;
+    transition: opacity 0.2s, transform 0.2s;
+    cursor: pointer;
+    border: none;
+  }
+
+  .btn-primary:hover { opacity: 0.85; transform: translateY(-2px); }
+
+  .btn-secondary {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.8rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    background: transparent;
+    color: var(--white);
+    padding: 0.9rem 2.4rem;
+    text-decoration: none;
+    font-weight: 500;
+    border: 1px solid rgba(245,240,232,0.2);
+    transition: border-color 0.2s, color 0.2s;
+    cursor: pointer;
+  }
+
+  .btn-secondary:hover { border-color: var(--gold); color: var(--gold); }
+
+  .hero-stats {
+    display: flex;
+    gap: 3rem;
+    margin-top: 5rem;
+    padding-top: 3rem;
+    border-top: 1px solid rgba(201,168,76,0.12);
+    opacity: 0;
+    animation: fadeUp 0.9s ease forwards 1s;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .stat { text-align: center; }
+
+  .stat-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.2rem;
+    font-weight: 600;
+    color: var(--gold);
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--grey);
+    margin-top: 0.3rem;
+  }
+
+  /* ── SECTION BASE ── */
+  section {
+    position: relative;
+    z-index: 1;
+  }
+
+  .section-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 6rem 2rem;
+  }
+
+  .section-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+
+  .section-label::after {
+    content: '';
+    display: block;
+    height: 1px;
+    width: 40px;
+    background: var(--gold-line);
+  }
+
+  .section-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 600;
+    line-height: 1.1;
+    margin-bottom: 1.5rem;
+  }
+
+  .section-title em { color: var(--gold); font-style: italic; }
+
+  .section-body {
+    font-size: 1rem;
+    line-height: 1.9;
+    color: var(--grey);
+    max-width: 580px;
+  }
+
+  /* ── PHILOSOPHY ── */
+  #philosophy {
+    border-top: 1px solid rgba(201,168,76,0.1);
+  }
+
+  .philosophy-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: center;
+    margin-top: 4rem;
+  }
+
+  .philosophy-tenets {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .tenet {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.5rem;
+    padding: 1.5rem 0;
+    border-bottom: 1px solid rgba(245,240,232,0.07);
+  }
+
+  .tenet:last-child { border-bottom: none; }
+
+  .tenet-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.5rem;
+    font-weight: 600;
+    color: var(--gold-dim);
+    line-height: 1;
+    flex-shrink: 0;
+    width: 40px;
+    color: rgba(201,168,76,0.2);
+  }
+
+  .tenet-text h4 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 0.3rem;
+    color: var(--white);
+  }
+
+  .tenet-text p {
+    font-size: 0.9rem;
+    color: var(--grey);
+    line-height: 1.7;
+  }
+
+  .philosophy-quote {
+    background: var(--navy3);
+    border-left: 2px solid var(--gold);
+    padding: 3rem;
+  }
+
+  .quote-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.8rem;
+    font-weight: 400;
+    font-style: italic;
+    line-height: 1.5;
+    color: var(--white);
+    margin-bottom: 2rem;
+  }
+
+  .quote-sub {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  .founders-flag {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-top: 1.5rem;
+    font-family: 'Barlow', sans-serif;
+    font-size: 0.85rem;
+    color: var(--grey);
+  }
+
+  /* ── FEATURES ── */
+  #features {
+    background: var(--navy2);
+    border-top: 1px solid rgba(201,168,76,0.08);
+    border-bottom: 1px solid rgba(201,168,76,0.08);
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: rgba(201,168,76,0.08);
+    margin-top: 4rem;
+    border: 1px solid rgba(201,168,76,0.08);
+  }
+
+  .feature-card {
+    background: var(--navy2);
+    padding: 2.5rem;
+    transition: background 0.2s;
+  }
+
+  .feature-card:hover { background: var(--navy3); }
+
+  .feature-icon {
+    font-size: 1.4rem;
+    margin-bottom: 1.2rem;
+    display: block;
+  }
+
+  .feature-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--white);
+    margin-bottom: 0.7rem;
+  }
+
+  .feature-body {
+    font-size: 0.87rem;
+    line-height: 1.8;
+    color: var(--grey);
+  }
+
+  .feature-tag {
+    display: inline-block;
+    margin-top: 1rem;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    border: 1px solid var(--gold-line);
+    padding: 0.2rem 0.6rem;
+  }
+
+  /* ── HOW IT WORKS ── */
+  #how {
+    border-bottom: 1px solid rgba(201,168,76,0.1);
+  }
+
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    margin-top: 4rem;
+    position: relative;
+  }
+
+  .steps::before {
+    content: '';
+    position: absolute;
+    top: 2rem;
+    left: 12.5%;
+    right: 12.5%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold-line), transparent);
+  }
+
+  .step {
+    text-align: center;
+    padding: 0 1.5rem;
+  }
+
+  .step-num {
+    width: 4rem;
+    height: 4rem;
+    border: 1px solid var(--gold-line);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--gold);
+    background: var(--navy);
+    position: relative;
+    z-index: 1;
+  }
+
+  .step-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 0.6rem;
+  }
+
+  .step-body {
+    font-size: 0.83rem;
+    line-height: 1.7;
+    color: var(--grey);
+  }
+
+  /* ── PERFORMANCE ── */
+  #performance {
+    background: var(--navy2);
+    border-bottom: 1px solid rgba(201,168,76,0.1);
+  }
+
+  .perf-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: center;
+    margin-top: 4rem;
+  }
+
+  .perf-disclaimer {
+    font-size: 0.75rem;
+    color: var(--grey2);
+    margin-top: 1.5rem;
+    font-style: italic;
+  }
+
+  .pnl-calendar {
+    background: var(--navy3);
+    border: 1px solid rgba(201,168,76,0.1);
+    padding: 2rem;
+  }
+
+  .cal-header {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+  }
+
+  .cal-day-label {
+    text-align: center;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--grey2);
+    padding: 0.3rem 0;
+  }
+
+  .cal-day {
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Barlow', sans-serif;
+    font-size: 0.65rem;
+    border: 1px solid rgba(245,240,232,0.04);
+    background: rgba(245,240,232,0.02);
+  }
+
+  .cal-day .d { color: var(--grey2); font-size: 0.55rem; }
+  .cal-day .v { font-weight: 500; font-size: 0.65rem; }
+  .cal-day.green { background: rgba(26,122,63,0.15); border-color: rgba(26,122,63,0.3); }
+  .cal-day.green .v { color: #4ecb7a; }
+  .cal-day.red { background: rgba(180,30,30,0.15); border-color: rgba(180,30,30,0.3); }
+  .cal-day.red .v { color: #e05555; }
+  .cal-day.empty { background: transparent; border-color: transparent; }
+
+  .perf-metrics {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .metric-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.2rem 1.5rem;
+    border: 1px solid rgba(201,168,76,0.08);
+    background: rgba(201,168,76,0.02);
+  }
+
+  .metric-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--grey);
+  }
+
+  .metric-val {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.6rem;
+    font-weight: 600;
+    color: #4ecb7a;
+  }
+
+  .metric-val.neutral { color: var(--white); font-size: 1.2rem; }
+
+  /* ── WAITLIST ── */
+  #waitlist {
+    text-align: center;
+    border-bottom: 1px solid rgba(201,168,76,0.1);
+  }
+
+  .waitlist-inner {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 7rem 2rem;
+  }
+
+  .waitlist-form {
+    display: flex;
+    gap: 0;
+    margin-top: 2.5rem;
+    border: 1px solid var(--gold-line);
+  }
+
+  .waitlist-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    padding: 1rem 1.4rem;
+    color: var(--white);
+    font-family: 'Barlow', sans-serif;
+    font-size: 0.9rem;
+    outline: none;
+  }
+
+  .waitlist-input::placeholder { color: var(--grey2); }
+
+  .waitlist-btn {
+    background: var(--gold);
+    color: var(--navy);
+    border: none;
+    padding: 1rem 2rem;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+
+  .waitlist-btn:hover { opacity: 0.85; }
+
+  .waitlist-note {
+    margin-top: 1rem;
+    font-size: 0.78rem;
+    color: var(--grey2);
+  }
+
+  .discord-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: 1.5rem;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--grey);
+    text-decoration: none;
+    border: 1px solid rgba(245,240,232,0.1);
+    padding: 0.7rem 1.5rem;
+    transition: border-color 0.2s, color 0.2s;
+  }
+
+  .discord-cta:hover { border-color: #5865f2; color: #5865f2; }
+
+  /* ── DISCLAIMER ── */
+  #disclaimer {
+    background: var(--navy2);
+  }
+
+  .disclaimer-box {
+    border: 1px solid rgba(201,168,76,0.2);
+    padding: 2.5rem;
+    max-width: 800px;
+    margin: 2rem auto 0;
+  }
+
+  .disclaimer-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .disclaimer-text {
+    font-size: 0.8rem;
+    line-height: 1.9;
+    color: var(--grey2);
+  }
+
+  .disclaimer-text strong { color: var(--grey); font-weight: 500; }
+
+  /* ── FOOTER ── */
+  footer {
+    padding: 2.5rem 4rem;
+    border-top: 1px solid rgba(201,168,76,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: gap;
+    position: relative;
+    z-index: 1;
+  }
+
+  .footer-logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--white);
+  }
+
+  .footer-logo span { color: var(--gold); }
+
+  .footer-mid {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--grey2);
+    text-align: center;
+  }
+
+  .footer-flags {
+    font-size: 0.8rem;
+    color: var(--grey2);
+    font-family: 'Barlow', sans-serif;
+  }
+
+  /* ── NAV DISCORD ICON ── */
+  .nav-discord {
+    color: var(--grey);
+    display: flex;
+    align-items: center;
+    margin-left: 0.8rem;
+    transition: color 0.2s;
+    text-decoration: none;
+  }
+  .nav-discord:hover { color: #5865f2; }
+
+  /* ── FOUNDERS ── */
+  #founders {
+    border-top: 1px solid rgba(201,168,76,0.1);
+    border-bottom: 1px solid rgba(201,168,76,0.1);
+  }
+
+  .founders-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-top: 3rem;
+  }
+
+  .founder-card {
+    overflow: hidden;
+    background: var(--navy2);
+    border: 1px solid rgba(201,168,76,0.1);
+    transition: border-color 0.3s;
+  }
+
+  .founder-card:hover { border-color: rgba(201,168,76,0.3); }
+
+  .founder-img-wrap {
+    width: 100%;
+    height: 360px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .founder-img-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+    filter: grayscale(15%) contrast(1.05);
+    transition: transform 0.6s ease;
+  }
+
+  .founder-card:hover .founder-img-wrap img { transform: scale(1.04); }
+
+  .founder-img-wrap::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 50%;
+    background: linear-gradient(to top, var(--navy2), transparent);
+  }
+
+  .founder-info { padding: 1.5rem 2rem 2rem; }
+
+  .founder-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: var(--white);
+    margin-bottom: 0.2rem;
+  }
+
+  .founder-role {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 1rem;
+  }
+
+  .founder-bio {
+    font-size: 0.88rem;
+    line-height: 1.8;
+    color: var(--grey);
+  }
+
+  .founder-placeholder {
+    width: 100%;
+    height: 360px;
+    background: var(--navy3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 1px solid rgba(201,168,76,0.08);
+  }
+
+  .placeholder-inner { text-align: center; }
+  .placeholder-inner .icon { font-size: 3rem; opacity: 0.2; display: block; margin-bottom: 0.8rem; }
+  .placeholder-inner p {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--grey2);
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+  }
+
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ── SUCCESS STATE ── */
+  .success-msg {
+    display: none;
+    color: #4ecb7a;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.85rem;
+    letter-spacing: 0.1em;
+    margin-top: 1rem;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    nav { padding: 1rem 1.5rem; }
+    .nav-links { display: none; }
+    .nav-cta { padding: 0.4rem 1rem; font-size: 0.7rem; }
+    .philosophy-grid, .perf-grid { grid-template-columns: 1fr; gap: 2rem; }
+    .features-grid { grid-template-columns: 1fr; }
+    .founders-grid { grid-template-columns: 1fr; }
+    .founder-img-wrap { height: 280px; }
+    .steps { grid-template-columns: 1fr 1fr; gap: 2rem; }
+    .steps::before { display: none; }
+    footer { flex-direction: column; gap: 1rem; text-align: center; padding: 2rem 1.5rem; }
+    .section-inner { padding: 4rem 1.5rem; }
+    .hero-stats { gap: 1.5rem; }
+    .waitlist-form { flex-direction: column; }
+    .waitlist-btn { width: 100%; padding: 1rem; }
+    .philosophy-quote { padding: 2rem 1.5rem; }
+    .pnl-calendar { padding: 1.5rem 1rem; }
+  }
+
+  @media (max-width: 480px) {
+    .steps { grid-template-columns: 1fr; }
+    .hero-stats { flex-direction: column; gap: 1.2rem; }
+  }
+
+  /* ── FOUNDER CROSSFADE ── */
+  .founder-img-wrap {
+    position: relative;
+    width: 100%;
+    height: 480px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+  }
+
+  .founder-img-wrap img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: opacity 1.4s ease-in-out;
+  }
+
+  .founder-img-wrap img.img-civi {
+    opacity: 1;
+    z-index: 2;
+  }
+
+  .founder-img-wrap img.img-mil {
+    opacity: 0;
+    z-index: 1;
+  }
+
+  .founder-img-wrap img.img-mil.active {
+    opacity: 1;
+    z-index: 2;
+  }
+
+  .founder-img-wrap img.img-civi.active {
+    opacity: 0;
+    z-index: 1;
+  }
+
+  .founder-img-wrap::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(8,15,30,0.85) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 3;
+  }
+
+  .crossfade-label {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 4;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    border: 1px solid var(--gold-line);
+    padding: 0.25rem 0.6rem;
+    background: rgba(8,15,30,0.6);
+    backdrop-filter: blur(4px);
+    transition: opacity 0.5s;
+  }
+</style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">
+    <img src="dht-logo.png" alt="Dual Horizon Technologies" style="height:52px;width:auto;display:block;filter:brightness(1.05);">
+  </a>
+  <ul class="nav-links">
+    <li><a href="#philosophy">Philosophy</a></li>
+    <li><a href="#features">The Bot</a></li>
+    <li><a href="#how">How It Works</a></li>
+    <li><a href="#performance">Performance</a></li>
+    <li><a href="#founders">Team</a></li>
+  </ul>
+  <a href="#waitlist" class="nav-cta">Join Waitlist</a>
+  <a href="https://discord.gg/kVFKTHMW" class="nav-discord" target="_blank" title="Join Discord">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057.1 18.08.111 18.1.129 18.112a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+  </a>
+  <button class="nav-mobile-btn" onclick="document.getElementById('mobileMenu').classList.add('open')" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobileMenu">
+  <button class="mobile-close" onclick="document.getElementById('mobileMenu').classList.remove('open')">✕</button>
+  <a href="#philosophy" onclick="document.getElementById('mobileMenu').classList.remove('open')">Philosophy</a>
+  <a href="#features" onclick="document.getElementById('mobileMenu').classList.remove('open')">The Bot</a>
+  <a href="#how" onclick="document.getElementById('mobileMenu').classList.remove('open')">How It Works</a>
+  <a href="#performance" onclick="document.getElementById('mobileMenu').classList.remove('open')">Performance</a>
+  <a href="#founders" onclick="document.getElementById('mobileMenu').classList.remove('open')">Team</a>
+  <a href="#waitlist" onclick="document.getElementById('mobileMenu').classList.remove('open')" style="color:var(--gold)">Join Waitlist</a>
+  <a href="https://discord.gg/kVFKTHMW" target="_blank" style="font-size:1.2rem;color:#5865f2">Join Discord</a>
+</div>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-glow"></div>
+  <div class="coin-parallax" id="coinParallax">
+    <img src="coin.png" alt="" aria-hidden="true">
+  </div>
+  <div class="hero-flag">🇦🇺 Australia &nbsp;×&nbsp; 🇰🇷 Korea &nbsp;—&nbsp; Est. 2026</div>
+  <img src="dht-logo.png" alt="Dual Horizon Technologies" style="height:clamp(100px,14vw,160px);width:auto;margin-bottom:2.5rem;opacity:0;animation:fadeUp 0.8s ease forwards 0.3s;filter:brightness(1.05);">
+  <h1 class="hero-title" style="font-size:clamp(1.1rem,2.5vw,1.8rem);letter-spacing:0.35em;font-weight:400;font-style:normal;color:var(--grey);margin-bottom:1.2rem;">
+    AUTOMATED TRADING SYSTEMS
+  </h1>
+  <p class="hero-tagline">
+    Automated trading systems built on <strong>rule-based execution</strong>,
+    data analysis, and operational clarity.<br>
+    We do not chase hype. We do not promise outcomes.
+  </p>
+  <div class="hero-btns">
+    <a href="#waitlist" class="btn-primary">Join the Waitlist</a>
+    <a href="https://discord.gg" class="btn-secondary">Join Our Discord</a>
+  </div>
+  <div class="hero-stats">
+    <div class="stat">
+      <div class="stat-num">+4.84%</div>
+      <div class="stat-label">30-Day PnL</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">4/4</div>
+      <div class="stat-label">Green Days (Bot Active)</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">24/7</div>
+      <div class="stat-label">Automated Execution</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">3</div>
+      <div class="stat-label">Exchanges Supported</div>
+    </div>
+  </div>
+</section>
+
+<!-- PHILOSOPHY -->
+<section id="philosophy">
+  <div class="section-inner">
+    <div class="section-label">Our foundation</div>
+    <h2 class="section-title">Built on <em>discipline</em>,<br>not emotion.</h2>
+    <p class="section-body">
+      Two former Marines. One shared conviction: that the principles which win on the battlefield — 
+      clarity, discipline, and structured execution — can be applied systematically to the markets.
+    </p>
+    <div class="philosophy-grid reveal">
+      <div class="philosophy-tenets">
+        <div class="tenet">
+          <div class="tenet-num">01</div>
+          <div class="tenet-text">
+            <h4>Plan Precisely</h4>
+            <p>Every trade is governed by a predefined ruleset. No improvisation, no gut calls. The plan is set before the market opens.</p>
+          </div>
+        </div>
+        <div class="tenet">
+          <div class="tenet-num">02</div>
+          <div class="tenet-text">
+            <h4>Execute Objectively</h4>
+            <p>The system removes emotion from the equation entirely. Entries, exits, and sizing are determined by data — not fear or greed.</p>
+          </div>
+        </div>
+        <div class="tenet">
+          <div class="tenet-num">03</div>
+          <div class="tenet-text">
+            <h4>Manage Risk Relentlessly</h4>
+            <p>Capital protection is the primary objective. Dynamic risk controls adapt to market conditions in real-time.</p>
+          </div>
+        </div>
+      </div>
+      <div class="philosophy-quote">
+        <p class="quote-text">"What began as structured conversations about risk and accountability evolved into a systematic approach to the markets."</p>
+        <div class="quote-sub">The Dual Horizon Story</div>
+        <div class="founders-flag">
+          <span>🇦🇺 J Park — Co-founder, Australia</span>
+          <span style="color:rgba(201,168,76,0.3)">—</span>
+          <span>🇰🇷 S Seok — Co-founder, Korea</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="section-inner">
+    <div class="section-label">The system</div>
+    <h2 class="section-title">Professional-grade<br><em>modular architecture.</em></h2>
+    <p class="section-body">
+      Not a single script. Six specialised engines working in concert — 
+      the same approach used by quantitative trading firms.
+    </p>
+    <div class="features-grid reveal">
+      <div class="feature-card">
+        <span class="feature-icon">🧠</span>
+        <div class="feature-title">Market Regime Intelligence</div>
+        <p class="feature-body">Detects whether the market is trending, ranging, or volatile — and automatically switches strategy. No more running one approach in every condition.</p>
+        <span class="feature-tag">Adaptive</span>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🐋</span>
+        <div class="feature-title">Whale Activity Tracking</div>
+        <p class="feature-body">Monitors large liquidity movements and volume spikes, helping the system react when institutional money enters the market.</p>
+        <span class="feature-tag">Institutional signals</span>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🛡</span>
+        <div class="feature-title">Advanced Risk Engine</div>
+        <p class="feature-body">Dynamic position sizing, exposure limits, and volatility-based risk control built directly into the system. Capital protection first, always.</p>
+        <span class="feature-tag">Capital first</span>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">⚡</span>
+        <div class="feature-title">Multi-Exchange Compatible</div>
+        <p class="feature-body">Operates across Bitget, Binance, and OKX — giving users flexibility and access to deeper market liquidity.</p>
+        <span class="feature-tag">Bitget · Binance · OKX</span>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">📊</span>
+        <div class="feature-title">Built-In Analytics</div>
+        <p class="feature-body">Every trade is tracked and analysed. The system monitors its own performance and optimises strategy behaviour over time.</p>
+        <span class="feature-tag">Self-improving</span>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🔐</span>
+        <div class="feature-title">Secure by Design</div>
+        <p class="feature-body">API-key based access with read + trade permissions only. The bot cannot withdraw or transfer funds — ever. Your capital stays in your control.</p>
+        <span class="feature-tag">Non-custodial</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <div class="section-inner">
+    <div class="section-label">Getting started</div>
+    <h2 class="section-title">Up and running<br><em>in under 30 minutes.</em></h2>
+    <div class="steps reveal">
+      <div class="step">
+        <div class="step-num">01</div>
+        <div class="step-title">Create Exchange Account</div>
+        <p class="step-body">Sign up to Bitget and complete verification. Takes about 10 minutes.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <div class="step-title">Generate API Key</div>
+        <p class="step-body">Create a read + trade API key. Withdrawal permissions are never required or used.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <div class="step-title">Configure the Bot</div>
+        <p class="step-body">Paste your credentials into the config file. Detailed step-by-step guide included.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">04</div>
+        <div class="step-title">Deploy & Monitor</div>
+        <p class="step-body">Run the bot 24/7. Receive automated PnL reports via Telegram every 6 hours.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PERFORMANCE -->
+<section id="performance">
+  <div class="section-inner">
+    <div class="section-label">Beta results</div>
+    <h2 class="section-title">Real numbers.<br><em>Real accountability.</em></h2>
+    <p class="section-body">All performance data is sourced directly from our live beta testing account on Bitget USDT-M Futures. Nothing is simulated.</p>
+    <div class="perf-grid reveal">
+      <div>
+        <div class="perf-metrics">
+          <div class="metric-row">
+            <div class="metric-label">30-Day PnL</div>
+            <div class="metric-val">+4.84%</div>
+          </div>
+          <div class="metric-row">
+            <div class="metric-label">7-Day PnL</div>
+            <div class="metric-val">+1.13%</div>
+          </div>
+          <div class="metric-row">
+            <div class="metric-label">Today's PnL</div>
+            <div class="metric-val">+0.18 AUD</div>
+          </div>
+          <div class="metric-row">
+            <div class="metric-label">Bot Status</div>
+            <div class="metric-val neutral">✅ Running</div>
+          </div>
+          <div class="metric-row">
+            <div class="metric-label">Market Conditions</div>
+            <div class="metric-val neutral" style="font-size:0.95rem;">Extreme Fear Recovery</div>
+          </div>
+        </div>
+        <p class="perf-disclaimer">⚠️ Past performance does not guarantee future results. Beta account — small capital. Last updated 13 March 2026.</p>
+      </div>
+      <div class="pnl-calendar">
+        <div class="cal-header">
+          <span>Daily PnL — March 2026</span>
+          <span style="color:rgba(245,240,232,0.3)">Bot live from Mar 9</span>
+        </div>
+        <div class="cal-grid">
+          <div class="cal-day-label">S</div>
+          <div class="cal-day-label">M</div>
+          <div class="cal-day-label">T</div>
+          <div class="cal-day-label">W</div>
+          <div class="cal-day-label">T</div>
+          <div class="cal-day-label">F</div>
+          <div class="cal-day-label">S</div>
+          <!-- Week 1 -->
+          <div class="cal-day"><span class="d">01</span><span class="v" style="color:rgba(245,240,232,0.2)">—</span></div>
+          <div class="cal-day"><span class="d">02</span><span class="v" style="color:rgba(245,240,232,0.2)">—</span></div>
+          <div class="cal-day"><span class="d">03</span><span class="v" style="color:rgba(245,240,232,0.2)">—</span></div>
+          <div class="cal-day"><span class="d">04</span><span class="v" style="color:rgba(245,240,232,0.2)">—</span></div>
+          <div class="cal-day"><span class="d">05</span><span class="v" style="color:rgba(245,240,232,0.2)">—</span></div>
+          <div class="cal-day"><span class="d">06</span><span class="v" style="color:rgba(245,240,232,0.2)">—</span></div>
+          <div class="cal-day"><span class="d">07</span><span class="v" style="color:rgba(245,240,232,0.2)">—</span></div>
+          <!-- Week 2 -->
+          <div class="cal-day" style="background:rgba(245,240,232,0.03);border-color:rgba(245,240,232,0.08);"><span class="d">08</span><span class="v" style="color:rgba(245,240,232,0.3);font-size:0.5rem;line-height:1.2;text-align:center;">manual</span></div>
+          <div class="cal-day green"><span class="d">09</span><span class="v">+0.21</span></div>
+          <div class="cal-day green"><span class="d">10</span><span class="v">+0.31</span></div>
+          <div class="cal-day green"><span class="d">11</span><span class="v">+0.07</span></div>
+          <div class="cal-day green"><span class="d">12</span><span class="v">+0.18</span></div>
+          <div class="cal-day"><span class="d">13</span><span class="v" style="color:var(--gold)">Today</span></div>
+          <div class="cal-day empty"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WAITLIST -->
+<section id="waitlist">
+  <div class="waitlist-inner">
+    <div class="section-label" style="justify-content:center">Early access</div>
+    <h2 class="section-title" style="font-size:clamp(2rem,5vw,3.2rem)">Join the<br><em>waitlist.</em></h2>
+    <p class="section-body" style="margin: 1rem auto; text-align:center">
+      We're currently in private beta. Join the waitlist to be notified when we open public access — and to secure your early adopter rate.
+    </p>
+    <div class="waitlist-form">
+      <input class="waitlist-input" type="email" placeholder="Your email address" id="emailInput">
+      <button class="waitlist-btn" onclick="handleWaitlist()">Join Now</button>
+    </div>
+    <div class="success-msg" id="successMsg">✅ &nbsp;You're on the list. We'll be in touch.</div>
+    <p class="waitlist-note">No spam. No commitment. We'll reach out when public access opens.</p>
+    <a href="https://discord.gg/kVFKTHMW" class="discord-cta">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057.1 18.08.111 18.1.129 18.112a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+      Join our Discord community
+    </a>
+  </div>
+</section>
+
+<!-- FOUNDERS -->
+<section id="founders">
+  <div class="section-inner">
+    <div class="section-label">The team</div>
+    <h2 class="section-title">Built by operators,<br><em>not suits.</em></h2>
+    <p class="section-body">Two former Marines from opposite sides of the world — united by discipline, systems thinking, and a shared conviction that the same principles that win on the battlefield can be applied systematically to the markets.</p>
+    <div class="founders-grid reveal">
+
+      <!-- J PARK -->
+      <div class="founder-card">
+        <div class="founder-img-wrap" id="crossfade-j">
+          <img class="img-civi" src="founder-j.jpg" alt="J Park civilian" style="object-position: center 15%;">
+          <img class="img-mil" src="founder-j-mil.jpg" alt="J Park military" style="object-position: center 20%;">
+          <div class="crossfade-label" id="label-j">Civilian</div>
+          <div class="founder-flag">🇦🇺 Australia</div>
+        </div>
+        <div class="founder-info">
+          <div class="founder-name">J Park</div>
+          <div class="founder-role">🇦🇺 Co-Founder — Marketing & Operations · Australia</div>
+          <p class="founder-bio">Former Marine. Built DHT from a conviction that structured thinking and iron discipline — the same principles that win on the battlefield — can be applied systematically to the markets. Leads marketing, community, and operations.</p>
+        </div>
+      </div>
+
+      <!-- S SEOK -->
+      <div class="founder-card">
+        <div class="founder-img-wrap" id="crossfade-s">
+          <img class="img-civi" src="founder-s.png" alt="S Seok civilian" style="object-position: center 8%;">
+          <img class="img-mil" src="founder-s-mil.png" alt="S Seok military" style="object-position: center 10%;">
+          <div class="crossfade-label" id="label-s">Civilian</div>
+          <div class="founder-flag">🇰🇷 Korea</div>
+        </div>
+        <div class="founder-info">
+          <div class="founder-name">S Seok</div>
+          <div class="founder-role">🇰🇷 Co-Founder — Lead Developer · Korea</div>
+          <p class="founder-bio">Former Marine & architect of the Horizon Bot's modular trading engine. Built every layer from the ground up — market regime detection, risk engine, whale tracking, and multi-exchange execution. Leads all technical development.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- DISCLAIMER -->
+<section id="disclaimer">
+  <div class="section-inner" style="padding-top:3rem;padding-bottom:3rem;">
+    <div class="disclaimer-box">
+      <div class="disclaimer-title">⚠️ &nbsp;Important Disclaimer (Australia)</div>
+      <p class="disclaimer-text">
+        This software is provided strictly as an automated trading tool for self-directed users.
+        <strong>The developer does not provide financial product advice, personal financial advice, operate managed investment schemes, or execute trades on behalf of users.</strong>
+        All trading decisions remain solely the responsibility of the user.
+        Cryptocurrency trading involves substantial risk and may result in the loss of capital.
+        Past performance does not guarantee future results.
+        By using this software, you acknowledge you are trading at your own risk and the developer is not liable for any financial losses.
+        This software is intended for technology and educational purposes only.
+        Our trading system has been structured with careful consideration of Australian regulatory standards. 🇦🇺
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <img src="dht-logo.png" alt="Dual Horizon Technologies" style="height:28px;width:auto;opacity:0.8;filter:brightness(1.0)">
+  <div class="footer-mid">ONE TEAM &nbsp;·&nbsp; ONE HORIZON &nbsp;·&nbsp; © 2026</div>
+  <div class="footer-flags">🇦🇺 &nbsp;×&nbsp; 🇰🇷</div>
+</footer>
+
+<script>
+  // Coin parallax on scroll
+  const coin = document.getElementById('coinParallax');
+  window.addEventListener('scroll', () => {
+    const scrollY = window.scrollY;
+    const heroH = document.getElementById('hero').offsetHeight;
+    if (scrollY < heroH * 1.2) {
+      const progress = scrollY / heroH;
+      // moves up slowly, fades out, scales down slightly
+      const translateY = scrollY * 0.35;
+      const opacity = Math.max(0, 0.18 - progress * 0.22);
+      const scale = 1 - progress * 0.08;
+      coin.style.transform = `translateX(calc(-50% + 0px)) translateY(-${translateY}px) scale(${scale})`;
+      coin.querySelector('img').style.opacity = opacity;
+    }
+  }, { passive: true });
+
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.1 });
+  reveals.forEach(r => obs.observe(r));
+
+  // Waitlist — Formspree integration
+  async function handleWaitlist() {
+    const input = document.getElementById('emailInput');
+    const msg = document.getElementById('successMsg');
+    const btn = document.querySelector('.waitlist-btn');
+    if (!input.value || !input.value.includes('@')) {
+      input.style.outline = '1px solid #e05555';
+      setTimeout(() => input.style.outline = '', 1500);
+      return;
+    }
+    btn.textContent = 'Sending...';
+    btn.disabled = true;
+    try {
+      const res = await fetch('https://formspree.io/f/YOUR_FORM_ID', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ email: input.value, source: 'dualhorizontech.com waitlist' })
+      });
+      if (res.ok) {
+        input.parentElement.style.display = 'none';
+        msg.style.display = 'block';
+      } else {
+        // Fallback — show success anyway and log
+        input.parentElement.style.display = 'none';
+        msg.style.display = 'block';
+        console.log('Form submission:', input.value);
+      }
+    } catch(e) {
+      input.parentElement.style.display = 'none';
+      msg.style.display = 'block';
+    }
+  }
+
+  document.getElementById('emailInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') handleWaitlist();
+  });
+
+  // Founder crossfade — military ↔ civilian every 4 seconds
+  function startCrossfade(wrapId, labelId) {
+    const wrap = document.getElementById(wrapId);
+    const label = document.getElementById(labelId);
+    const civi = wrap.querySelector('.img-civi');
+    const mil = wrap.querySelector('.img-mil');
+    let showingMil = false;
+
+    setInterval(() => {
+      showingMil = !showingMil;
+      if (showingMil) {
+        mil.classList.add('active');
+        civi.classList.add('active');
+        label.textContent = 'Military';
+      } else {
+        mil.classList.remove('active');
+        civi.classList.remove('active');
+        label.textContent = 'Civilian';
+      }
+    }, 4000);
+  }
+
+  startCrossfade('crossfade-j', 'label-j');
+  startCrossfade('crossfade-s', 'label-s');
+</script>
+</body>
+</html>
