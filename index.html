@@ -1465,20 +1465,18 @@
 
   /* ── TICKER ── */
   .hero-ticker {
-    position: absolute;
+    position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
     height: 38px;
-    border-top: 1px solid rgba(201,168,76,0.2);
-    background: rgba(8,15,30,0.75);
-    backdrop-filter: blur(10px);
+    border-top: 1px solid rgba(201,168,76,0.25);
+    background: rgba(8,15,30,0.9);
+    backdrop-filter: blur(12px);
     overflow: hidden;
-    z-index: 10;
+    z-index: 999;
     display: flex;
     align-items: center;
-    opacity: 0;
-    animation: fadeUp 1s ease forwards 3.2s;
   }
 
   .ticker-track {
@@ -1649,9 +1647,8 @@
     </div>
   </div>
 
-  <!-- TICKER -->
-  <div class="hero-ticker">
-    <div class="ticker-track" id="tickerTrack">
+  <!-- ticker moved to fixed bottom -->
+
       <span class="ticker-star"></span>
       <div class="ticker-item highlight">HORIZON BOT</div>
       <span class="ticker-star s2"></span>
@@ -1718,8 +1715,6 @@
       <span class="ticker-star s2"></span>
       <div class="ticker-item">Drawdown Controlled</div>
       <span class="ticker-star s3"></span>
-    </div>
-  </div>
 
 </section>
 
@@ -2160,7 +2155,7 @@
 </section>
 
 <!-- FOOTER -->
-<footer>
+<footer style="padding-bottom: 3.5rem;">
   <img src="dht-logo.png" alt="Dual Horizon Technologies" style="height:28px;width:auto;opacity:0.8;filter:brightness(1.0)">
   <div class="footer-mid">ONE TEAM &nbsp;·&nbsp; ONE HORIZON &nbsp;·&nbsp; © 2026</div>
   <div class="footer-flags">🇦🇺 &nbsp;×&nbsp; 🇰🇷</div>
@@ -2282,5 +2277,77 @@
     if (!isOpen) item.classList.add('open');
   }
 </script>
+
+<!-- FIXED BOTTOM TICKER -->
+<div class="hero-ticker">
+  <div class="ticker-track" id="tickerTrack">
+    <span class="ticker-star"></span>
+    <div class="ticker-item highlight">HORIZON BOT</div>
+    <span class="ticker-star s2"></span>
+    <div class="ticker-item">Market Regime Detection</div>
+    <span class="ticker-star s3"></span>
+    <div class="ticker-item highlight">Bot Status: In Development</div>
+    <span class="ticker-star"></span>
+    <div class="ticker-item">Asymmetric Returns</div>
+    <span class="ticker-star s2"></span>
+    <div class="ticker-item highlight">BTC · ETH · SOL</div>
+    <span class="ticker-star s3"></span>
+    <div class="ticker-item">Kelly Criterion Sizing</div>
+    <span class="ticker-star"></span>
+    <div class="ticker-item highlight">30D PnL: +1,795.72%</div>
+    <span class="ticker-star s2"></span>
+    <div class="ticker-item">Liquidity Sweep Detection</div>
+    <span class="ticker-star s3"></span>
+    <div class="ticker-item highlight">Dual Horizon Technologies</div>
+    <span class="ticker-star"></span>
+    <div class="ticker-item">ATR-Based Stop Loss</div>
+    <span class="ticker-star s2"></span>
+    <div class="ticker-item highlight">🇦🇺 × 🇰🇷</div>
+    <span class="ticker-star s3"></span>
+    <div class="ticker-item">Trailing Stop Engine</div>
+    <span class="ticker-star"></span>
+    <div class="ticker-item highlight">Bitget · Binance · OKX</div>
+    <span class="ticker-star s2"></span>
+    <div class="ticker-item">Sharpe-Based Scaling</div>
+    <span class="ticker-star s3"></span>
+    <div class="ticker-item highlight">Korean Marine Corps</div>
+    <span class="ticker-star"></span>
+    <div class="ticker-item">Drawdown Controlled</div>
+    <span class="ticker-star s2"></span>
+    <!-- Duplicate for seamless loop -->
+    <div class="ticker-item highlight">HORIZON BOT</div>
+    <span class="ticker-star s3"></span>
+    <div class="ticker-item">Market Regime Detection</div>
+    <span class="ticker-star"></span>
+    <div class="ticker-item highlight">Bot Status: In Development</div>
+    <span class="ticker-star s2"></span>
+    <div class="ticker-item">Asymmetric Returns</div>
+    <span class="ticker-star s3"></span>
+    <div class="ticker-item highlight">BTC · ETH · SOL</div>
+    <span class="ticker-star"></span>
+    <div class="ticker-item">Kelly Criterion Sizing</div>
+    <span class="ticker-star s2"></span>
+    <div class="ticker-item highlight">30D PnL: +1,795.72%</div>
+    <span class="ticker-star s3"></span>
+    <div class="ticker-item">Liquidity Sweep Detection</div>
+    <span class="ticker-star"></span>
+    <div class="ticker-item highlight">Dual Horizon Technologies</div>
+    <span class="ticker-star s2"></span>
+    <div class="ticker-item">ATR-Based Stop Loss</div>
+    <span class="ticker-star s3"></span>
+    <div class="ticker-item highlight">🇦🇺 × 🇰🇷</div>
+    <span class="ticker-star"></span>
+    <div class="ticker-item">Trailing Stop Engine</div>
+    <span class="ticker-star s2"></span>
+    <div class="ticker-item highlight">Bitget · Binance · OKX</div>
+    <span class="ticker-star s3"></span>
+    <div class="ticker-item">Sharpe-Based Scaling</div>
+    <span class="ticker-star"></span>
+    <div class="ticker-item highlight">Korean Marine Corps</div>
+    <span class="ticker-star s2"></span>
+    <div class="ticker-item">Drawdown Controlled</div>
+    <span class="ticker-star s3"></span>
+  </div>
+</div>
 </body>
 </html>
